@@ -166,3 +166,7 @@ events.out.tfevents.*
 *.tar
 *.gz
 *.zip
+
+# Prediction outputs
+*.jsonl
+predictions*.json

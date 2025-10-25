@@ -48,11 +48,16 @@ def evaluate(config, model_path, data_dir, output_dir):
         target_sr=config['audio']['sample_rate']
     )
 
+    # Custom collate function to handle variable-length audio
+    def custom_collate(batch):
+        return batch
+
     test_loader = DataLoader(
         test_dataset,
         batch_size=config['training']['batch_size'],
         shuffle=False,
-        num_workers=config['training']['num_workers'],
+        num_workers=0,
+        collate_fn=custom_collate,
     )
 
     print(f"Test samples: {len(test_dataset)}")

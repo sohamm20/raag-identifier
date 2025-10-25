@@ -7,9 +7,9 @@ random_seed: 42
 # If you have all files in data/raw/, the training script will auto-split them
 # Or you can manually organize into train/val/test subdirectories
 data:
-  train_dir: "data/raw"  # Main data directory
-  val_dir: "data/raw"    # Can be same as train_dir for auto-split
-  test_dir: "data/raw"   # Can be same as train_dir for auto-split
+  train_dir: "data/segments"  # Main data directory
+  val_dir: "data/segments"    # Can be same as train_dir for auto-split
+  test_dir: "data/segments"   # Can be same as train_dir for auto-split
   processed_dir: "data/processed"
 
 # Audio processing parameters
@@ -66,11 +66,11 @@ model:
 
 # Training parameters
 training:
-  epochs: 100
-  batch_size: 16
+  epochs: 10
+  batch_size: 32
   learning_rate: 0.001
   weight_decay: 0.0001
-  num_workers: 4
+  num_workers: 0
 
   # Learning rate scheduling
   lr_scheduler: "plateau"  # 'plateau', 'step', 'cosine'

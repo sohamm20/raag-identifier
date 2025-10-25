@@ -194,13 +194,21 @@ def train(config):
         print("Auto-splitting dataset into train/val sets...")
         from raag_identifier.data import create_data_splits
 
-        train_files, val_files, test_files = create_data_splits(
-            data_dir=str(train_dir),
-            train_ratio=0.7,
-            val_ratio=0.15,
-            test_ratio=0.15,
-            random_seed=config['random_seed']
+        # For large datasets, we'll just do a simple train/val split
+        from sklearn.model_selection import train_test_split
+        from raag_identifier.data import RaagDataset
+
+        # Get all files
+        temp_dataset = RaagDataset(str(train_dir), mode='all')
+        all_samples = temp_dataset.samples
+        files = [str(path) for path, _ in all_samples]
+        labels = [label for _, label in all_samples]
+
+        # 80/20 train/val split
+        train_files, val_files = train_test_split(
+            files, test_size=0.2, random_state=config['random_seed'], stratify=labels
         )
+        test_files = []
 
         # For now, we'll use all files and split in dataset
         print(f"Split: {len(train_files)} train, {len(val_files)} val, {len(test_files)} test")
@@ -226,12 +234,17 @@ def train(config):
         # Filter val dataset
         val_dataset.samples = [(p, l) for p, l in val_dataset.samples if str(p) in val_files]
 
+    # Custom collate function to handle variable-length audio
+    def custom_collate(batch):
+        return batch
+
     # Create dataloaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=config['training']['batch_size'],
         shuffle=True,
         num_workers=config['training']['num_workers'],
+        collate_fn=custom_collate,
     )
 
     val_loader = DataLoader(
@@ -239,6 +252,7 @@ def train(config):
         batch_size=config['training']['batch_size'],
         shuffle=False,
         num_workers=config['training']['num_workers'],
+        collate_fn=custom_collate,
     )
 
     print(f"Train samples: {len(train_dataset)}")
@@ -285,8 +299,7 @@ def train(config):
         optimizer,
         mode='min',
         factor=0.5,
-        patience=config['training']['lr_patience'],
-        verbose=True
+        patience=config['training']['lr_patience']
     )
 
     # Training loop
