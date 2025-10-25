@@ -1,0 +1,101 @@
+You are building a production-ready Raag Identifier (Indian classical music) that classifies an input audio file into one of three raags: Yaman, Bhairav, Puriya_Dhanashree. Implement the full pipeline end-to-end (data ingest → preprocessing → model training → evaluation → inference). Deliver runnable code and documentation.
+
+Required features & constraints
+
+Language / framework: Python. Use PyTorch or TensorFlow (pick one and be consistent). Use standard libraries such as librosa, numpy, scipy. Use scikit-learn for metrics.
+
+Input dataset format:
+
+Directory with audio files whose filenames include the raag label, e.g. Yaman_001.wav, Bhairav_vocal_02.mp3, PuriyaDhanashree_05.flac.
+
+Provide a dataset loader that extracts the label from filename and supports .wav, .mp3, .flac.
+
+Preprocessing:
+
+VAD / remove non-vocal segments:
+
+Implement voice activity detection to remove silence and non-vocal portions (options: energy thresholding + harmonic content, or use a VAD library such as WebRTC or pyannote if available).
+
+Output trimmed vocal-only audio (or mark segments to keep).
+
+Time-frequency representation:
+
+Compute a representation appropriate for pitched Indian classical music:
+
+Preferred: Constant-Q Transform (CQT) or log-frequency spectrogram that preserves musical pitch resolution.
+
+Alternative: Mel spectrogram or STFT (use high frequency resolution).
+
+Save the frequency vs time arrays for each segment in NumPy .npy or HDF5 with shape [freq_bins, time_frames].
+
+Segmentation:
+
+Cut audio into ~5 second segments (configurable segment length), optionally with configurable overlap (e.g., 2.5s).
+
+Normalize amplitudes per segment.
+
+Data augmentation (recommended):
+
+Small pitch shifts (±1–2 semitones), time stretching (±5–10%), additive noise, random crop — but ensure augmentation does not destroy raag characteristics.
+
+Model:
+
+Build a classifier that consumes the 2D time-frequency input and outputs one of three labels.
+
+Suggested architectures:
+
+CNN on log-CQT with global pooling + Dense classifier (ResNet18 base or small custom CNN).
+
+CRNN: CNN to extract spatial features + BiGRU/LSTM to capture temporal patterns.
+
+Provide a lightweight option for quick experiments and a stronger option for final training.
+
+Use categorical cross-entropy, Adam optimizer, early stopping, and model checkpointing.
+
+Save model weights and a model manifest (architecture + preprocessing parameters).
+
+Training & evaluation:
+
+Implement train/validation/test split (configurable). Provide an 80/10/10 default split or stratified K-fold as an option.
+
+Provide scripts to run training with logging (console + saved training history). Save best model by validation accuracy.
+
+Evaluation metrics: overall accuracy, per-class precision/recall/F1, confusion matrix. Output a final test report (CSV + plotted confusion matrix).
+
+Include a script to run cross-validation and to report average metrics across folds.
+
+Inference:
+
+inference.py that accepts a single audio file or a directory and prints or saves predictions per file and per 5s segment. Output format: JSON lines with {"file": "...", "segment_start": 12.5, "segment_end": 17.5, "prediction": "Yaman", "confidence": 0.92}.
+
+CLI examples in README, e.g. python inference.py --model model.pth --input somefile.wav.
+
+Repo & docs:
+
+requirements.txt (or pyproject.toml) with pinned versions.
+
+README.md with quick start: how to prepare dataset, how to train, how to run inference, expected sample commands.
+
+Dockerfile which builds and runs inference (small, minimal base image).
+
+Unit tests for key functions (preprocessing, dataset loader, inference sanity check).
+
+A small sample dataset generator or script that can synthesize a few short labeled clips for smoke testing.
+
+Performance expectations:
+
+Provide baseline model and hyperparameters.
+
+Report final test accuracy and confusion matrix. If dataset is small, show learning curves and note potential for overfitting.
+
+Code quality:
+
+Modular, well-documented functions/classes, type hints, and docstrings.
+
+No hardcoded absolute paths; use config files (YAML or JSON) for parameters.
+
+CLI flags for major options (segment length, overlap, input dir, model path, batch size, learning rate, epochs).
+
+Provide a reproducible random seed facility.
+
+Example dataset layout (required)
